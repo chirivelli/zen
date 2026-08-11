@@ -1,5 +1,5 @@
 diff --git a/browser/components/urlbar/UrlbarController.sys.mjs b/browser/components/urlbar/UrlbarController.sys.mjs
-index a05894d593e4149097c473822a38f87b2220625f..1660106c2a6548920fdffd2656e5a1f12c2d548b 100644
+index a05894d593e4149097c473822a38f87b2220625f..8f3e1c2a4b5d6e7f8a9b0c1d2e3f4a5b6c7d8e9 100644
 --- a/browser/components/urlbar/UrlbarController.sys.mjs
 +++ b/browser/components/urlbar/UrlbarController.sys.mjs
 @@ -305,7 +305,6 @@ export class UrlbarController {
@@ -10,7 +10,23 @@ index a05894d593e4149097c473822a38f87b2220625f..1660106c2a6548920fdffd2656e5a1f1
        this.view.isOpen &&
        event.ctrlKey &&
        (event.key == "n" || event.key == "p")
-@@ -494,6 +493,8 @@ export class UrlbarController {
+@@ -391,6 +390,16 @@ export class UrlbarController {
+         event.preventDefault();
+         break;
+       case KeyEvent.DOM_VK_TAB: {
++        // Zen: Tab on a matching site suggestion enters that site's search mode
++        // (no "@" required). Falls through to normal Tab behaviour otherwise.
++        if (
++          executeAction &&
++          !(event.ctrlKey || event.altKey || event.shiftKey) &&
++          this.browserWindow.gZenUIManager?.maybeEnterSiteSearchMode?.(event)
++        ) {
++          break;
++        }
+         if (!this.view.visibleRowCount) {
+           // Leave it to the default behaviour if there are not results.
+           break;
+@@ -494,6 +503,8 @@ export class UrlbarController {
              });
            }
            event.preventDefault();

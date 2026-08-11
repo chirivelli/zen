@@ -1190,6 +1190,11 @@ Preferences.addAll([
     default: "float",
   },
   {
+    id: "zen.urlbar.tab-to-search.enabled",
+    type: "bool",
+    default: true,
+  },
+  {
     id: "zen.workspaces.separate-essentials",
     type: "bool",
     default: false,

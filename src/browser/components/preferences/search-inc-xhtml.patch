@@ -1,0 +1,28 @@
+diff --git a/browser/components/preferences/search.inc.xhtml b/browser/components/preferences/search.inc.xhtml
+index a1b2c3d4e5f6789012345678abcdef0123456789..b2c3d4e5f6789012345678abcdef01234567890a 100644
+--- a/browser/components/preferences/search.inc.xhtml
++++ b/browser/components/preferences/search.inc.xhtml
+@@ -22,6 +22,24 @@
+     <!-- Firefox Suggest / Address Bar -->
+     <html:setting-group groupid="firefoxSuggest" data-category="paneSearch" hidden="true" data-subcategory="locationBar" data-srd-migrated=""/>
+ 
++    <!-- Zen Tab to Search sites -->
++    <groupbox id="zenTabToSearchGroup" data-category="paneSearch" hidden="true" data-srd-groupid="zenTabToSearch">
++      <label><html:h2 data-l10n-id="zen-tab-to-search-header" /></label>
++      <description class="description-deemphasized" data-l10n-id="zen-tab-to-search-description" />
++
++      <checkbox id="zenTabToSearchEnabled"
++                data-l10n-id="zen-tab-to-search-enabled"
++                preference="zen.urlbar.tab-to-search.enabled"/>
++
++      <vbox id="zenTabToSearchPresets" class="indent">
++        <description class="description-deemphasized" data-l10n-id="zen-tab-to-search-presets-description" />
++        <!-- Preset checkboxes are filled in by search.js -->
++      </vbox>
++
++      <description class="description-deemphasized" data-l10n-id="zen-tab-to-search-shortcuts-hint" />
++    </groupbox>
++
+     <!-- Search Shortcuts -->
+     <groupbox id="oneClickSearchProvidersGroup" data-category="paneSearch" hidden="true" data-srd-groupid="searchShortcuts">
+       <label><html:h2 data-l10n-id="search-one-click-header2" /></label>

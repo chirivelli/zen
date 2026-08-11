@@ -194,9 +194,14 @@ window.gZenUIManager = {
     const { nsZenSiteDataPanel: ZenSiteDataPanel } = ChromeUtils.importESModule(
       "resource:///modules/ZenSiteDataPanel.sys.mjs"
     );
+    const { ZenTabToSearch } = ChromeUtils.importESModule(
+      "resource:///modules/ZenTabToSearch.sys.mjs"
+    );
     registerZenUrlbarProviders();
     window.gZenSiteDataPanel = new ZenSiteDataPanel(window);
     gURLBar._zenTrimURL = this.urlbarTrim.bind(this);
+    // Warm the site-search engine cache so Tab on youtube.com (etc.) is sync.
+    ZenTabToSearch.init().catch(console.error);
   },
 
   _debloatContextMenus() {
@@ -477,6 +482,80 @@ window.gZenUIManager = {
       delete this._animatingSearchModeTimeout;
     }
     gURLBar.searchMode = searchMode;
+    gURLBar.startQuery({
+      allowAutofill: false,
+      event,
+    });
+  },
+
+  /**
+   * If Tab is pressed on a URL / switch-to-tab suggestion whose domain matches
+   * a configured search engine, enter that engine's search mode (Chrome-like
+   * tab-to-search, without requiring "@").
+   *
+   * @param {Event} event
+   * @returns {boolean} True if site search mode was entered.
+   */
+  maybeEnterSiteSearchMode(event) {
+    if (
+      !Services.prefs.getBoolPref("zen.urlbar.tab-to-search.enabled", true) ||
+      !gURLBar.hasAttribute("breakout-extend") ||
+      gURLBar.searchMode ||
+      this._animatingSearchMode
+    ) {
+      return false;
+    }
+
+    const { ZenTabToSearch } = ChromeUtils.importESModule(
+      "resource:///modules/ZenTabToSearch.sys.mjs"
+    );
+    if (!ZenTabToSearch.enabled) {
+      return false;
+    }
+
+    const result = gURLBar.view?.selectedResult || null;
+    // Don't intercept Tab on dedicated search-mode offers; let normal
+    // selection / confirmation handle those.
+    if (result?.payload?.providesSearchMode) {
+      return false;
+    }
+
+    let hostOrUrl =
+      result?.payload?.url ||
+      result?.payload?.displayUrl ||
+      (result?.autofill ? gURLBar.value : null) ||
+      gURLBar.untrimmedValue ||
+      gURLBar.value;
+    if (!hostOrUrl || !String(hostOrUrl).trim()) {
+      return false;
+    }
+
+    // Kick init in the background so later Tabs are sync-fast.
+    ZenTabToSearch.init().catch(console.error);
+
+    const engine = ZenTabToSearch.engineForHostOrUrl(String(hostOrUrl).trim());
+    if (!engine) {
+      return false;
+    }
+
+    this._confirmSiteSearchMode(engine, event);
+    return true;
+  },
+
+  _confirmSiteSearchMode(engine, event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    gURLBar.removeAttribute("animate-searchmode");
+    if (this._animatingSearchModeTimeout) {
+      clearTimeout(this._animatingSearchModeTimeout);
+      delete this._animatingSearchModeTimeout;
+    }
+    gURLBar.searchMode = {
+      engineName: engine.name,
+      entry: "tabtosearch",
+      isPreview: false,
+    };
+    gURLBar.setValue("");
     gURLBar.startQuery({
       allowAutofill: false,
       event,

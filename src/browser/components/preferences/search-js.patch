@@ -1,0 +1,125 @@
+diff --git a/browser/components/preferences/search.js b/browser/components/preferences/search.js
+index a1b2c3d4e5f6789012345678abcdef0123456789..c3d4e5f6789012345678abcdef01234567890ab 100644
+--- a/browser/components/preferences/search.js
++++ b/browser/components/preferences/search.js
+@@ -55,6 +55,8 @@ var gSearchPane = {
+ 
+     this._engineStore.init().catch(console.error);
+ 
++    this.initZenTabToSearch().catch(console.error);
++
+     if (
+       Services.policies &&
+       !Services.policies.isAllowed("installSearchEngine")
+@@ -80,6 +82,87 @@ var gSearchPane = {
+     lazy.separatePrivateDefaultPrefValue;
+   },
+ 
++  /**
++   * Build the Zen "Tab to Search" preset checkboxes and keep them in sync with
++   * installed search engines.
++   */
++  async initZenTabToSearch() {
++    const { ZenTabToSearch, ZEN_TAB_TO_SEARCH_PRESETS } =
++      ChromeUtils.importESModule("resource:///modules/ZenTabToSearch.sys.mjs");
++
++    const container = document.getElementById("zenTabToSearchPresets");
++    const enabledCheckbox = document.getElementById("zenTabToSearchEnabled");
++    if (!container || !enabledCheckbox) {
++      return;
++    }
++
++    // Register so the XUL preference="" binding works even if Zen Looks
++    // (which registers other zen.* prefs) has not been opened yet.
++    if (!Preferences.get("zen.urlbar.tab-to-search.enabled")) {
++      Preferences.add({
++        id: "zen.urlbar.tab-to-search.enabled",
++        type: "bool",
++      });
++    }
++
++    await ZenTabToSearch.init();
++
++    const updateDisabledState = () => {
++      const enabled = Services.prefs.getBoolPref(
++        "zen.urlbar.tab-to-search.enabled",
++        true
++      );
++      for (const checkbox of container.querySelectorAll(
++        "checkbox[zen-tab-to-search-preset]"
++      )) {
++        checkbox.disabled = !enabled;
++      }
++    };
++
++    const syncPresetCheckboxes = async () => {
++      for (const preset of ZEN_TAB_TO_SEARCH_PRESETS) {
++        const checkbox = container.querySelector(
++          `checkbox[zen-tab-to-search-preset="${preset.id}"]`
++        );
++        if (checkbox) {
++          checkbox.checked = await ZenTabToSearch.isPresetInstalled(preset.id);
++        }
++      }
++    };
++
++    // Avoid duplicating checkboxes if init runs more than once.
++    if (!container.querySelector("checkbox[zen-tab-to-search-preset]")) {
++      for (const preset of ZEN_TAB_TO_SEARCH_PRESETS) {
++        const checkbox = document.createXULElement("checkbox");
++        checkbox.setAttribute("zen-tab-to-search-preset", preset.id);
++        document.l10n.setAttributes(
++          checkbox,
++          `zen-tab-to-search-preset-${preset.id}`
++        );
++        checkbox.checked = await ZenTabToSearch.isPresetInstalled(preset.id);
++        checkbox.addEventListener("command", async () => {
++          try {
++            if (checkbox.checked) {
++              await ZenTabToSearch.installPreset(preset.id);
++            } else {
++              await ZenTabToSearch.uninstallPreset(preset.id);
++            }
++          } catch (ex) {
++            console.error(ex);
++            checkbox.checked = await ZenTabToSearch.isPresetInstalled(
++              preset.id
++            );
++          }
++        });
++        container.appendChild(checkbox);
++      }
++    } else {
++      await syncPresetCheckboxes();
++    }
++
++    updateDisabledState();
++    Services.prefs.addObserver(
++      "zen.urlbar.tab-to-search.enabled",
++      updateDisabledState
++    );
++    window.addEventListener(
++      "unload",
++      () => {
++        Services.prefs.removeObserver(
++          "zen.urlbar.tab-to-search.enabled",
++          updateDisabledState
++        );
++      },
++      { once: true }
++    );
++
++    // Keep checkboxes aligned when engines are added/removed elsewhere.
++    this._engineStore.addListener({
++      rebuild() {
++        syncPresetCheckboxes().catch(console.error);
++      },
++      rowCountChanged() {
++        syncPresetCheckboxes().catch(console.error);
++      },
++    });
++  },
++
+   // ADDRESS BAR
+   handleEvent(aEvent) {
+     if (aEvent.type != "command") {

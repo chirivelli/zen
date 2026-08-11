@@ -189,6 +189,28 @@ zen-urlbar-behavior-floating-on-type =
 zen-urlbar-behavior-float =
     .label = Always floating
 
+zen-tab-to-search-header = Tab to Search
+zen-tab-to-search-description =
+    Press Tab on a site suggestion in the address bar (for example youtube.com) to search that site — no “@” keyword required.
+zen-tab-to-search-enabled =
+    .label = Enable Tab to Search for matching site suggestions
+zen-tab-to-search-presets-description =
+    Enable popular sites below. You can also add any site with the Add button under Search Shortcuts — Tab to Search works for every search engine whose website matches.
+zen-tab-to-search-shortcuts-hint =
+    Tip: Use Search Shortcuts below to add custom sites like IMDb or your company wiki.
+zen-tab-to-search-preset-youtube =
+    .label = YouTube
+zen-tab-to-search-preset-x =
+    .label = X (Twitter)
+zen-tab-to-search-preset-amazon =
+    .label = Amazon
+zen-tab-to-search-preset-reddit =
+    .label = Reddit
+zen-tab-to-search-preset-github =
+    .label = GitHub
+zen-tab-to-search-preset-wikipedia =
+    .label = Wikipedia
+
 pane-zen-CKS-title = Keyboard Shortcuts
 category-zen-CKS =
     .tooltiptext = { pane-zen-CKS-title }

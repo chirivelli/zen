@@ -42,3 +42,8 @@
 
 - name: browser.urlbar.shortcuts.workspaces
   value: true
+
+# Press Tab on a matching site suggestion (e.g. youtube.com) to enter that
+# site's search mode. Engines are managed under Settings → Search.
+- name: zen.urlbar.tab-to-search.enabled
+  value: true

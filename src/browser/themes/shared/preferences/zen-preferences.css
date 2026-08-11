@@ -507,3 +507,14 @@ html|setting-group:is([data-subcategory="layout"], [groupid="support"], [groupid
     display: none !important;
   }
 }
+
+#zenTabToSearchPresets {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-block: 8px;
+}
+
+#zenTabToSearchPresets > checkbox {
+  margin-inline-start: 0;
+}
