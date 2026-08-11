@@ -1,8 +1,8 @@
 diff --git a/browser/components/preferences/search.js b/browser/components/preferences/search.js
-index a1b2c3d4e5f6789012345678abcdef0123456789..c3d4e5f6789012345678abcdef01234567890ab 100644
+index 1111111111111111111111111111111111111111..2222222222222222222222222222222222222222 100644
 --- a/browser/components/preferences/search.js
 +++ b/browser/components/preferences/search.js
-@@ -55,6 +55,8 @@ var gSearchPane = {
+@@ -56,6 +56,8 @@
  
      this._engineStore.init().catch(console.error);
  
@@ -11,14 +11,10 @@ index a1b2c3d4e5f6789012345678abcdef0123456789..c3d4e5f6789012345678abcdef012345
      if (
        Services.policies &&
        !Services.policies.isAllowed("installSearchEngine")
-@@ -80,6 +82,87 @@ var gSearchPane = {
+@@ -80,6 +82,107 @@
      lazy.separatePrivateDefaultPrefValue;
    },
  
-+  /**
-+   * Build the Zen "Tab to Search" preset checkboxes and keep them in sync with
-+   * installed search engines.
-+   */
 +  async initZenTabToSearch() {
 +    const { ZenTabToSearch, ZEN_TAB_TO_SEARCH_PRESETS } =
 +      ChromeUtils.importESModule("resource:///modules/ZenTabToSearch.sys.mjs");

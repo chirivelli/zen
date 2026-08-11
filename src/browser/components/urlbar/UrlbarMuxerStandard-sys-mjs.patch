@@ -1,8 +1,8 @@
 diff --git a/browser/components/urlbar/UrlbarMuxerStandard.sys.mjs b/browser/components/urlbar/UrlbarMuxerStandard.sys.mjs
-index 16041c10755adced9d665539796737a9f55712de..2232bdcc02e20dbb384ca0529a8bd8ce73dc6284 100644
+index 1111111111111111111111111111111111111111..2222222222222222222222222222222222222222 100644
 --- a/browser/components/urlbar/UrlbarMuxerStandard.sys.mjs
 +++ b/browser/components/urlbar/UrlbarMuxerStandard.sys.mjs
-@@ -837,7 +837,11 @@ class MuxerUnifiedComplete extends UrlbarMuxer {
+@@ -920,6 +920,10 @@
        result.providerName == "UrlbarProviderHeuristicFallback" &&
        state.context.heuristicResult?.providerName !=
          "UrlbarProviderHeuristicFallback"
@@ -13,8 +13,7 @@ index 16041c10755adced9d665539796737a9f55712de..2232bdcc02e20dbb384ca0529a8bd8ce
      ) {
        return false;
      }
- 
-@@ -1491,7 +1495,9 @@ class MuxerUnifiedComplete extends UrlbarMuxer {
+@@ -1582,7 +1586,9 @@
        usedLimits.maxResultCount++;
      }
  
