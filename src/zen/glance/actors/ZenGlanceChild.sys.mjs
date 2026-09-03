@@ -17,12 +17,32 @@ XPCOMUtils.defineLazyPreferenceGetter(
   true
 );
 
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "glanceEnabled",
+  "zen.glance.enabled",
+  true
+);
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "glanceActivationMethod",
+  "zen.glance.activation-method",
+  "alt"
+);
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "splitAltClickOpen",
+  "zen.splitView.alt-click-open",
+  true
+);
+
 // A small threshold to allow for minor mouse jitter during a normal click.
 // Anything beyond this is likely an intentional drag (like selecting text).
 const CLICK_DRAG_THRESHOLD_PX = 4;
 
 export class ZenGlanceChild extends JSWindowActorChild {
-  #activationMethod;
   #mouseDownX = null;
   #mouseDownY = null;
 
@@ -37,12 +57,6 @@ export class ZenGlanceChild extends JSWindowActorChild {
     }
   }
 
-  async #initActivationMethod() {
-    this.#activationMethod = await this.sendQuery(
-      "ZenGlance:GetActivationMethod"
-    );
-  }
-
   #ensureOnlyKeyModifiers(event) {
     return !(event.ctrlKey ^ event.altKey ^ event.shiftKey ^ event.metaKey);
   }
@@ -52,6 +66,28 @@ export class ZenGlanceChild extends JSWindowActorChild {
       url: href,
       triggeringPrincipal: principal,
     });
+  }
+
+  #openSplit(href, principal) {
+    this.sendAsyncMessage("ZenGlance:OpenSplit", {
+      url: href,
+      triggeringPrincipal: principal,
+    });
+  }
+
+  #matchesActivationMethod(event, activationMethod) {
+    switch (activationMethod) {
+      case "ctrl":
+        return event.ctrlKey;
+      case "alt":
+        return event.altKey;
+      case "shift":
+        return event.shiftKey;
+      case "meta":
+        return event.metaKey;
+      default:
+        return false;
+    }
   }
 
   #sendClickDataToParent(node, originalTarget) {
@@ -126,7 +162,9 @@ export class ZenGlanceChild extends JSWindowActorChild {
     // when clicking on a link with a different domain where glance would open.
     // The problem is that at that stage we don't know the rect or even what
     // element has been clicked, so we send the data here.
-    this.#sendClickDataToParent(node, event.target);
+    if (lazy.glanceEnabled) {
+      this.#sendClickDataToParent(node, event.target);
+    }
 
     this.#mouseDownX = event.clientX;
     this.#mouseDownY = event.clientY;
@@ -156,14 +194,16 @@ export class ZenGlanceChild extends JSWindowActorChild {
     ) {
       return;
     }
-    const activationMethod = this.#activationMethod;
-    if (activationMethod === "ctrl" && !event.ctrlKey) {
-      return;
-    } else if (activationMethod === "alt" && !event.altKey) {
-      return;
-    } else if (activationMethod === "shift" && !event.shiftKey) {
-      return;
-    } else if (activationMethod === "meta" && !event.metaKey) {
+
+    const openGlance =
+      lazy.glanceEnabled &&
+      this.#matchesActivationMethod(event, lazy.glanceActivationMethod);
+    // Option/Alt + click opens a split with the current tab. If Glance is
+    // enabled and also bound to Alt, Glance keeps the click.
+    const openSplit =
+      !openGlance && lazy.splitAltClickOpen && event.altKey;
+
+    if (!openGlance && !openSplit) {
       return;
     }
     if (this.#checkSecurity(href, principal)) {
@@ -171,7 +211,11 @@ export class ZenGlanceChild extends JSWindowActorChild {
     }
     event.preventDefault();
     event.stopPropagation();
-    this.#openGlance(href, principal);
+    if (openGlance) {
+      this.#openGlance(href, principal);
+    } else {
+      this.#openSplit(href, principal);
+    }
   }
 
   on_keydown(event) {
@@ -183,9 +227,5 @@ export class ZenGlanceChild extends JSWindowActorChild {
         this.contentWindow.document.activeElement !==
         this.contentWindow.document.body,
     });
-  }
-
-  async on_DOMContentLoaded() {
-    await this.#initActivationMethod();
   }
 }

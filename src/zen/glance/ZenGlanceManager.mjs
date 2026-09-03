@@ -1713,20 +1713,45 @@ class nsZenGlanceManager extends nsZenDOMOperatedFeature {
    * @param {Event} event - The bookmark click event
    */
   openGlanceForBookmark(event) {
+    const glanceEnabled = Services.prefs.getBoolPref(
+      "zen.glance.enabled",
+      true
+    );
     const activationMethod = Services.prefs.getStringPref(
       "zen.glance.activation-method",
       "ctrl"
     );
 
-    if (!this.#isActivationKeyPressed(event, activationMethod)) {
+    if (
+      glanceEnabled &&
+      this.#isActivationKeyPressed(event, activationMethod)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const data = this.#createGlanceDataFromBookmark(event);
+      this.openGlance(data);
       return;
     }
 
-    event.preventDefault();
-    event.stopPropagation();
-
-    const data = this.#createGlanceDataFromBookmark(event);
-    this.openGlance(data);
+    if (
+      Services.prefs.getBoolPref("zen.splitView.alt-click-open", true) &&
+      event.altKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.metaKey
+    ) {
+      const uri = event.target._placesNode?.uri;
+      if (!uri) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      gZenViewSplitter.splitLinkWithCurrentTab(
+        uri,
+        Services.scriptSecurityManager.getSystemPrincipal()
+      );
+    }
   }
 
   /**

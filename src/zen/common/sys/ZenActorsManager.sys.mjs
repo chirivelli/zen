@@ -42,7 +42,6 @@ let JSWINDOWACTORS = {
     child: {
       esModuleURI: "resource:///actors/ZenGlanceChild.sys.mjs",
       events: {
-        DOMContentLoaded: {},
         mousedown: {
           capture: true,
         },
@@ -57,7 +56,6 @@ let JSWINDOWACTORS = {
     allFrames: true,
     remoteTypes: ["web", "file"],
     safeForUntrustedWebProcess: true,
-    enablePreference: "zen.glance.enabled",
   },
   ZenWindowDrag: {
     parent: {

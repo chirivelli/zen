@@ -11,14 +11,12 @@ export class ZenGlanceParent extends JSWindowActorParent {
 
   async receiveMessage(message) {
     switch (message.name) {
-      case "ZenGlance:GetActivationMethod": {
-        return Services.prefs.getStringPref(
-          "zen.glance.activation-method",
-          "ctrl"
-        );
-      }
       case "ZenGlance:OpenGlance": {
         this.openGlance(this.browsingContext.topChromeWindow, message.data);
+        break;
+      }
+      case "ZenGlance:OpenSplit": {
+        this.openSplit(this.browsingContext.topChromeWindow, message.data);
         break;
       }
       case "ZenGlance:CloseGlance": {
@@ -45,5 +43,13 @@ export class ZenGlanceParent extends JSWindowActorParent {
 
   openGlance(window, data) {
     return window.gZenGlanceManager.openGlance(data);
+  }
+
+  openSplit(window, data) {
+    const { url, triggeringPrincipal } = data ?? {};
+    return window.gZenViewSplitter.splitLinkWithCurrentTab(
+      url,
+      triggeringPrincipal
+    );
   }
 }

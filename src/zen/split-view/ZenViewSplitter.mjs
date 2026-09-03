@@ -1223,18 +1223,37 @@ class nsZenViewSplitter extends nsZenDOMOperatedFeature {
       window.gContextMenu.mediaURL ||
       window.gContextMenu.contentData.docLocation ||
       window.gContextMenu.target.ownerDocument.location.href;
+    this.splitLinkWithCurrentTab(url, window.gContextMenu.principal);
+  }
+
+  /**
+   * Opens a URL in a new tab and splits it with the current tab.
+   *
+   * @param {string} url - The URL to open.
+   * @param {nsIPrincipal} triggeringPrincipal - The triggering principal.
+   * @returns {Tab|null} The new tab, or null if it could not be opened.
+   */
+  splitLinkWithCurrentTab(url, triggeringPrincipal) {
+    if (!url || !triggeringPrincipal) {
+      return null;
+    }
     const currentTab = gZenGlanceManager.getTabOrGlanceParent(
       window.gBrowser.selectedTab
     );
     const newTab = this.openAndSwitchToTab(url, {
       skipRoute: true,
       inBackground: false,
-      triggeringPrincipal: window.gContextMenu.principal,
+      triggeringPrincipal,
     });
     if (!newTab) {
-      return;
+      return null;
+    }
+    if (!this.canOpenLinkInSplitView()) {
+      gZenUIManager.showToast("zen-split-view-limit-toast");
+      return newTab;
     }
     this.splitTabs([currentTab, newTab], undefined, 1);
+    return newTab;
   }
 
   /**

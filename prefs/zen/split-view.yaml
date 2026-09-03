@@ -8,6 +8,11 @@
 - name: zen.splitView.enable-tab-click-split
   value: true
 
+# Option/Alt + click a link to open it in a split with the current tab.
+# Glance wins if zen.glance.enabled and zen.glance.activation-method is "alt".
+- name: zen.splitView.alt-click-open
+  value: true
+
 - name: zen.splitView.min-resize-width
   value: 7
 
